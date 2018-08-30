@@ -8,18 +8,21 @@ archivesBaseName = 'jSerialComm'
 version = '2.2.0'
 ext.moduleName = 'com.fazecast.jSerialComm'
 
-assert hasProperty('java6Home'): "Set the property 'java6Home' in your gradle.properties file pointing to a Java 6 JDK installation"
+ext.java8Home='/Library/Java/JavaVirtualMachines/jdk1.8.0_162.jdk/Contents/Home'
+ext.java9Home='/Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents/Home'
+
+assert hasProperty('java8Home'): "Set the property 'java8Home' in your gradle.properties file pointing to a Java 8 JDK installation"
 assert hasProperty('java9Home'): "Set the property 'java9Home' in your gradle.properties file pointing to a Java 9 JDK installation"
 
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 javadoc.options.links("https://docs.oracle.com/javase/9/docs/api/")
 javadoc.options.addBooleanOption('html4', true)
 
-def java6ExecutablesPath = new File(java6Home, 'bin')
+def java8ExecutablesPath = new File(java8Home, 'bin')
 def java9ExecutablesPath = new File(java9Home, 'bin')
-def java6Executables = [:].withDefault { execName ->
-  def executable = new File(java6ExecutablesPath, execName)
+def java8Executables = [:].withDefault { execName ->
+  def executable = new File(java8ExecutablesPath, execName)
   executable
 }
 def java9Executables = [:].withDefault { execName ->
@@ -30,17 +33,17 @@ def java9Executables = [:].withDefault { execName ->
 tasks.withType(JavaCompile) {
   options.with {
     fork = true
-    forkOptions.javaHome = file(java6Home)
+    forkOptions.javaHome = file(java8Home)
   }
 }
 tasks.withType(Javadoc) {
   executable = java9Executables.javadoc
 }
 tasks.withType(Test) {
-  executable = java6Executables.java
+  executable = java8Executables.java
 }
 tasks.withType(JavaExec) {
-  executable = java6Executables.java
+  executable = java8Executables.java
 }
 
 sourceSets {
@@ -67,8 +70,8 @@ compileModuleInfoJava {
     options.forkOptions.javaHome = file(java9Home)
     options.sourcepath = files(sourceSets.moduleInfo.java.srcDirs)
     options.compilerArgs = [
-      '--module-path', classpath.asPath,
-      '-d', sourceSets.main.output.classesDirs.asPath
+            '--module-path', classpath.asPath,
+            '-d', sourceSets.main.output.classesDirs.asPath
     ]
   }
 }
@@ -80,24 +83,24 @@ jar {
   manifest {
     instruction 'Bundle-Description', 'Java Serial Communications Library'
     instruction 'Bundle-Vendor', 'Fazecast, Inc.'
-    instruction 'Require-Capability', 'osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.6))"'
+    instruction 'Require-Capability', 'osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"'
     attributes 'Implementation-Title': 'jSerialComm: Java Serial Communications Library',
-	           'Implementation-Version': version,
-               'Implementation-Vendor': 'Fazecast, Inc.',
-               'Sealed': 'true'
+            'Implementation-Version': version,
+            'Implementation-Vendor': 'Fazecast, Inc.',
+            'Sealed': 'true'
   }
 }
 
 task testJar(type: Jar) {
   classifier = 'test'
   from sourceSets.test.output, sourceSets.main.output
-  
+
   manifest {
-    attributes 'Main-Class': 'com.fazecast.jSerialComm.SerialPortTest', 
-               'Implementation-Title': 'jSerialComm: Java Serial Communications Library',
-	           'Implementation-Version': version,
-               'Implementation-Vendor': 'Fazecast, Inc.',
-               'Sealed': 'true'
+    attributes 'Main-Class': 'com.fazecast.jSerialComm.SerialPortTest',
+            'Implementation-Title': 'jSerialComm: Java Serial Communications Library',
+            'Implementation-Version': version,
+            'Implementation-Vendor': 'Fazecast, Inc.',
+            'Sealed': 'true'
   }
 }
 
